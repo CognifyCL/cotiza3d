@@ -83,6 +83,10 @@
     .item-actions button{border:0;background:transparent;color:#b4532c;font-size:12px;font-weight:800;padding:7px}
     .settings-section{padding-bottom:26px;margin-bottom:25px;border-bottom:1px solid #e6ecea}
     .settings-section:last-child{padding:0;margin:0;border:0}
+    .account-tabs{display:flex;gap:8px;margin-top:20px}
+    .account-tabs .btn{flex:1}
+    .account-tabs .active{background:#162537;color:white;border-color:#162537}
+    .account-note{margin-top:18px}
     .toast{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#162537;color:white;padding:11px 18px;border-radius:11px;font-size:13px;box-shadow:0 12px 30px #172c3f33;z-index:3;max-width:90vw;text-align:center}
     @media(min-width:700px){.shell{padding:0 28px}.panel-inner{padding:29px}.intro{padding-top:53px}header{padding-bottom:95px}}
     @media(max-width:699px){.quote-layout{display:block}.quote-layout>.panel+.panel{margin-top:16px}.grid{gap:0 12px}.result-actions .btn{flex:1 1 42%}}
@@ -92,7 +96,7 @@
 <body>
   <header>
     <div class="shell">
-      <div class="bar"><div class="brand"><span class="mark">3D</span>Cotiza3D</div><button id="settingsButton" type="button" class="header-action hidden">Ajustes</button></div>
+      <div class="bar"><div class="brand"><span class="mark">3D</span>Cotiza3D</div><div class="actions" style="margin:0"><button id="accountButton" type="button" class="header-action">Cuenta</button><button id="settingsButton" type="button" class="header-action hidden">Ajustes</button></div></div>
       <div class="intro"><div class="kicker">Tu taller · tus precios</div><h1 id="heading">Cotiza tus impresiones con claridad.</h1><p id="subheading">Configura tus materiales una vez y crea cotizaciones desde el celular en segundos.</p></div>
     </div>
   </header>
@@ -105,6 +109,7 @@
           <div class="field"><label for="setupName">Tu nombre</label><div class="input"><input id="setupName" type="text" autocomplete="given-name" maxlength="50" placeholder="Ej.: Camilo" required></div></div>
           <p class="error" id="nameError" role="alert"></p>
           <div class="actions"><button class="btn primary fill" type="submit">Continuar</button></div>
+          <p class="helper">¿Ya tienes una cuenta? <button id="onboardingLogin" type="button" class="text-button">Inicia sesión aquí</button></p>
         </form>
         <form id="firstFilamentStep" class="hidden" novalidate>
           <h2>Registra tu primer filamento</h2><p class="muted">Podrás agregar más y cambiar sus precios cuando quieras.</p>
@@ -209,6 +214,29 @@
         <div class="notice">Tus datos se guardan únicamente en este navegador. Si borras sus datos o cambias de dispositivo, deberás registrarlos de nuevo.</div>
       </div>
     </section>
+
+    <section id="accountView" class="panel hidden" aria-label="Cuenta y sincronización">
+      <div class="panel-inner">
+        <div class="section-head"><h2>Tu cuenta</h2><button id="closeAccount" type="button" class="text-button">Volver</button></div>
+        <p class="muted">Crea una cuenta gratuita para recuperar tus filamentos, tarifas y cotizaciones en otros dispositivos.</p>
+        <p id="cloudStatus" class="notice account-note" role="status">Preparando conexión…</p>
+        <div id="signedInArea" class="hidden">
+          <p class="muted">Sesión iniciada como <strong id="signedInEmail"></strong>.</p>
+          <div class="actions"><button id="signOutButton" type="button" class="btn">Cerrar sesión</button></div>
+        </div>
+        <div id="signedOutArea">
+          <div class="account-tabs"><button id="loginTab" type="button" class="btn active">Iniciar sesión</button><button id="registerTab" type="button" class="btn">Registrarse</button></div>
+          <form id="accountForm" novalidate>
+            <div class="field"><label for="accountEmail">Correo electrónico</label><div class="input"><input id="accountEmail" type="email" autocomplete="email" required></div></div>
+            <div class="field"><label for="accountPassword">Contraseña</label><div class="input"><input id="accountPassword" type="password" minlength="6" autocomplete="current-password" required></div></div>
+            <p id="accountError" class="error" role="alert"></p>
+            <div class="actions"><button id="accountSubmit" type="submit" class="btn primary fill">Iniciar sesión</button></div>
+          </form>
+          <button id="resetPassword" type="button" class="text-button">Olvidé mi contraseña</button>
+          <p id="registerNote" class="helper hidden">Se guardarán en tu cuenta los datos que ya configuraste en este navegador.</p>
+        </div>
+      </div>
+    </section>
   </main>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script>
@@ -223,10 +251,11 @@
       const validWeight = n => Number.isFinite(n) && n > 0;
       const freshId = () => globalThis.crypto?.randomUUID?.() || "f-"+Date.now()+"-"+Math.random().toString(36).slice(2);
       let data = load(), step = 1, editId = null, currentQuoteId = null, result = null, toastTimer;
+      let cloudUid=null, cloudEmail="", cloudHooks=null, accountMode="login";
 
-      function load() {
+      function load(key=KEY) {
         try {
-          const raw = JSON.parse(localStorage.getItem(KEY));
+          const raw = JSON.parse(localStorage.getItem(key));
           if(raw && typeof raw.name === "string" && Array.isArray(raw.filaments) && (raw.tariffs === null || typeof raw.tariffs === "object")) {
             raw.quotes=Array.isArray(raw.quotes) ? raw.quotes : [];
             return raw;
@@ -234,8 +263,12 @@
         } catch {}
         return {name:"",filaments:[],tariffs:null,quotes:[]};
       }
-      function save() {
-        try { localStorage.setItem(KEY,JSON.stringify(data)); return true; }
+      function save(syncProfile=true) {
+        try {
+          localStorage.setItem(cloudUid ? KEY+"-user-"+cloudUid : KEY,JSON.stringify(data));
+          if(cloudUid && syncProfile) cloudHooks?.saveProfile({name:data.name,filaments:data.filaments,tariffs:data.tariffs});
+          return true;
+        }
         catch { toast("No se pudo guardar en este navegador. Revisa el almacenamiento disponible."); return false; }
       }
       function toast(message) {
@@ -254,12 +287,14 @@
         $("quoteView").classList.add("hidden");
         $("savedQuotesView").classList.add("hidden");
         $("settingsView").classList.add("hidden");
+        $("accountView").classList.add("hidden");
         $("settingsButton").classList.add("hidden");
         showStep(data.name ? data.filaments.length ? 3 : 2 : 1);
       }
       function showQuote() {
         $("onboarding").classList.add("hidden");
         $("settingsView").classList.add("hidden");
+        $("accountView").classList.add("hidden");
         $("quoteView").classList.remove("hidden");
         $("savedQuotesView").classList.remove("hidden");
         $("settingsButton").classList.remove("hidden");
@@ -294,6 +329,7 @@
       function showSettings() {
         $("quoteView").classList.add("hidden");
         $("savedQuotesView").classList.add("hidden");
+        $("accountView").classList.add("hidden");
         $("settingsView").classList.remove("hidden");
         $("settingsButton").classList.add("hidden");
         $("heading").textContent="Tu taller, tus ajustes.";
@@ -322,6 +358,50 @@
         $("filamentFormTitle").textContent="Agregar filamento";$("saveFilamentButton").textContent="Agregar filamento";
         $("cancelFilamentEdit").classList.add("hidden");$("editFilamentError").textContent="";
       }
+      function renderAccount() {
+        $("accountButton").textContent=cloudUid ? "Mi cuenta" : "Cuenta";
+        $("signedInArea").classList.toggle("hidden",!cloudUid);
+        $("signedOutArea").classList.toggle("hidden",!!cloudUid);
+        $("signedInEmail").textContent=cloudEmail;
+        $("registerTab").disabled=!(data.name && data.filaments.length && data.tariffs);
+        $("loginTab").classList.toggle("active",accountMode==="login");
+        $("registerTab").classList.toggle("active",accountMode==="register");
+        $("accountSubmit").textContent=accountMode==="register" ? "Crear cuenta y sincronizar" : "Iniciar sesión";
+        $("accountPassword").autocomplete=accountMode==="register" ? "new-password" : "current-password";
+        $("resetPassword").classList.toggle("hidden",accountMode!=="login");
+        $("registerNote").classList.toggle("hidden",accountMode!=="register");
+      }
+      function showAccount() {
+        $("onboarding").classList.add("hidden");$("quoteView").classList.add("hidden");
+        $("savedQuotesView").classList.add("hidden");$("settingsView").classList.add("hidden");
+        $("accountView").classList.remove("hidden");$("settingsButton").classList.add("hidden");
+        $("heading").textContent="Tus cotizaciones, donde estés.";
+        $("subheading").textContent="Entra a tu cuenta para sincronizar tus datos entre dispositivos.";
+        renderAccount();window.scrollTo({top:0,behavior:"smooth"});
+      }
+      function closeAccount() {
+        if(data.name && data.filaments.length && data.tariffs)showQuote();else start();
+      }
+      function enterAccount(uid,email,snapshot,status) {
+        cloudUid=uid;cloudEmail=email;
+        data={name:snapshot.name||"",filaments:Array.isArray(snapshot.filaments)?snapshot.filaments:[],tariffs:snapshot.tariffs||null,quotes:Array.isArray(snapshot.quotes)?snapshot.quotes:[]};
+        currentQuoteId=null;result=null;$("quoteForm").reset();invalidateResult();
+        save(false);$("cloudStatus").textContent=status;
+        $("accountPassword").value="";renderAccount();closeAccount();
+      }
+      function exitAccount() {
+        cloudUid=null;cloudEmail="";data=load(KEY);
+        currentQuoteId=null;result=null;$("quoteForm").reset();invalidateResult();
+        $("cloudStatus").textContent="Tus datos locales permanecen en este navegador.";
+        $("accountPassword").value="";renderAccount();closeAccount();
+      }
+      window.cotiza3dBridge={
+        guestSnapshot:()=>load(KEY),
+        cachedSnapshot:uid=>load(KEY+"-user-"+uid),
+        enterAccount,exitAccount,
+        setHooks:hooks=>{cloudHooks=hooks;$("cloudStatus").textContent="Conexión lista. Puedes crear una cuenta o iniciar sesión.";},
+        setStatus:message=>{$("cloudStatus").textContent=message;}
+      };
       function renderSavedQuotes() {
         const list=$("savedQuotesList");list.replaceChildren();
         if(!data.quotes.length) {
@@ -374,7 +454,11 @@
         const record={id:previous?.id||freshId(),title,createdAt:previous?.createdAt||now,updatedAt:now,result};
         const oldQuotes=data.quotes;
         data.quotes=[record,...oldQuotes.filter(q=>q.id!==record.id)];
-        if(save()) {currentQuoteId=record.id;renderSavedQuotes();toast("Cotización guardada en este navegador");}
+        if(save(false)) {
+          currentQuoteId=record.id;renderSavedQuotes();
+          if(cloudUid) cloudHooks?.saveQuote(record);
+          toast(cloudUid ? "Cotización guardada; sincronizando cuenta" : "Cotización guardada en este navegador");
+        }
         else data.quotes=oldQuotes;
         renderResult();
       }
@@ -502,11 +586,45 @@ Precio final: ${money(r.rounded)}`;
         if(b.dataset.action!=="confirm-remove")return;
         const oldQuotes=data.quotes;
         data.quotes=oldQuotes.filter(x=>x.id!==q.id);
-        if(!save()) {data.quotes=oldQuotes;return;}
+        if(!save(false)) {data.quotes=oldQuotes;return;}
+        if(cloudUid)cloudHooks?.deleteQuote(q.id);
         if(currentQuoteId===q.id)newQuote();
         renderSavedQuotes();toast("Cotización eliminada");
       });
       $("settingsButton").addEventListener("click",showSettings);
+      $("accountButton").addEventListener("click",showAccount);
+      $("onboardingLogin").addEventListener("click",()=>{accountMode="login";showAccount();});
+      $("closeAccount").addEventListener("click",closeAccount);
+      $("loginTab").addEventListener("click",()=>{accountMode="login";$("accountError").textContent="";renderAccount();});
+      $("registerTab").addEventListener("click",()=>{accountMode="register";$("accountError").textContent="";renderAccount();});
+      function accountError(error) {
+        const messages={"auth/email-already-in-use":"Ese correo ya tiene una cuenta. Inicia sesión.","auth/invalid-email":"Revisa el correo electrónico.","auth/weak-password":"Usa una contraseña de al menos 6 caracteres.","auth/invalid-credential":"Correo o contraseña incorrectos.","auth/too-many-requests":"Demasiados intentos. Intenta más tarde.","permission-denied":"No se pudo acceder a tus datos. Intenta nuevamente."};
+        return messages[error?.code]||"No se pudo conectar. Revisa tu conexión e intenta nuevamente.";
+      }
+      $("accountForm").addEventListener("submit",async e=>{
+        e.preventDefault();const email=$("accountEmail").value.trim(),password=$("accountPassword").value;
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||password.length<6) {
+          $("accountError").textContent="Ingresa un correo válido y una contraseña de al menos 6 caracteres.";return;
+        }
+        if(accountMode==="register" && !(data.name && data.filaments.length && data.tariffs)) {
+          $("accountError").textContent="Configura primero tu nombre, filamento y tarifas.";return;
+        }
+        if(!cloudHooks){$("accountError").textContent="La conexión aún no está disponible. Intenta nuevamente.";return;}
+        $("accountError").textContent="";$("accountSubmit").disabled=true;
+        try {await cloudHooks[accountMode](email,password);}
+        catch(error){$("accountError").textContent=accountError(error);}
+        finally {$("accountSubmit").disabled=false;}
+      });
+      $("resetPassword").addEventListener("click",async()=>{
+        const email=$("accountEmail").value.trim();
+        if(!email){$("accountError").textContent="Escribe tu correo para recuperar la contraseña.";return;}
+        try {await cloudHooks?.resetPassword(email);toast("Si el correo está registrado, recibirás instrucciones.");}
+        catch(error){$("accountError").textContent=accountError(error);}
+      });
+      $("signOutButton").addEventListener("click",async()=>{
+        try {await cloudHooks?.logout();}
+        catch(error){$("accountError").textContent=accountError(error);}
+      });
       $("closeSettings").addEventListener("click",showQuote);
       $("addFilamentButton").addEventListener("click",()=>{showSettings();$("editFilamentName").focus();});
       $("filamentList").addEventListener("click",e=>{
@@ -546,7 +664,11 @@ Precio final: ${money(r.rounded)}`;
       $("imageButton").addEventListener("click",saveImage);
       $("shareButton").addEventListener("click",shareQuote);
       if(data.name && data.filaments.length && data.tariffs) showQuote(); else start();
+      renderAccount();
     })();
+  </script>
+  <script type="module">
+    import("./cloud.js").catch(()=>window.cotiza3dBridge.setStatus("No se pudo cargar la conexión. La app sigue disponible en este navegador."));
   </script>
 </body>
 </html>
