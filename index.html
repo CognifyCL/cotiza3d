@@ -138,7 +138,7 @@
           <div class="section-head"><h2>Nueva cotización</h2><button id="addFilamentButton" class="text-button" type="button">+ Filamento</button></div>
           <p class="muted">Ingresa el consumo y el tiempo para una impresión.</p>
           <form id="quoteForm" novalidate>
-            <div class="field"><label for="quoteTitle">Nombre de la cotización</label><div class="input"><input id="quoteTitle" type="text" maxlength="80" placeholder="Ej.: Soporte para celular" required></div></div>
+            <div class="field"><label for="quoteTitle">Nombre del objeto</label><div class="input"><input id="quoteTitle" type="text" maxlength="80" placeholder="Ej.: Caja cocina, juguete" required></div></div>
             <div class="field"><label for="quoteFilament">Filamento</label><div class="input select-wrap"><select id="quoteFilament" required></select></div></div>
             <div class="field"><label for="quoteGrams">Filamento utilizado</label><div class="input"><input id="quoteGrams" type="number" inputmode="decimal" step="any" min="0" placeholder="Ej.: 49,68"><span class="unit">g</span></div><p class="helper">Incluye soportes y material descartado si el laminador los considera.</p></div>
             <div class="grid">
@@ -169,7 +169,7 @@
     <section id="savedQuotesView" class="panel saved-panel hidden" aria-label="Cotizaciones guardadas">
       <div class="panel-inner">
         <div class="section-head"><h2>Cotizaciones guardadas</h2><button id="newQuoteButton" type="button" class="text-button">+ Nueva</button></div>
-        <p class="muted">Cada cálculo se guarda en este navegador. Abre una cotización para revisar o actualizar sus datos.</p>
+        <p class="muted">Cada objeto cotizado se guarda en este navegador. Abre una cotización para revisar o actualizar sus datos.</p>
         <div id="savedQuotesList" class="saved-list"></div>
       </div>
     </section>
@@ -363,7 +363,7 @@
         const f=data.filaments.find(x=>x.id===$("quoteFilament").value), t=data.tariffs;
         const valid=title && f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
           validMoney(grams) && Number.isInteger(hours) && hours>=0 && Number.isInteger(minutes) && minutes>=0 && minutes<60 && hours*60+minutes>0;
-        $("quoteError").textContent=valid ? "" : "Ingresa un nombre, filamento, gramos y tiempo válidos (minutos de 0 a 59; tiempo mayor que cero).";
+        $("quoteError").textContent=valid ? "" : "Ingresa el nombre del objeto, filamento, gramos y tiempo válidos (minutos de 0 a 59; tiempo mayor que cero).";
         if(!valid) { invalidateResult(); return; }
         const duration=hours+minutes/60, material=grams*f.price/f.weight, time=duration*t.hourly;
         const real=material+time;
@@ -400,7 +400,7 @@
       function quoteText() {
         const r=result;
         return `COTIZACIÓN DE IMPRESIÓN 3D
-${r.title}
+Objeto: ${r.title}
 Preparada por: ${r.name}
 Filamento: ${r.filament.name}
 Consumo: ${exact(r.grams)} g
@@ -416,7 +416,8 @@ Precio final: ${money(r.rounded)}`;
         ctx.fillStyle="#ff985f";ctx.font="bold 38px system-ui";ctx.fillText("3D   Cotiza3D",80,105);
         ctx.fillStyle="#ffffff";ctx.font="bold 67px system-ui";ctx.fillText("Cotización de impresión",80,200);
         ctx.fillStyle="#ffffff";ctx.fillRect(48,225,984,795);
-        ctx.fillStyle="#657b89";ctx.font="bold 32px system-ui";ctx.fillText(r.title,100,318,875);
+        ctx.fillStyle="#738896";ctx.font="bold 22px system-ui";ctx.fillText("OBJETO",100,280);
+        ctx.fillStyle="#657b89";ctx.font="bold 32px system-ui";ctx.fillText(r.title,100,325,875);
         ctx.fillStyle="#738896";ctx.font="bold 25px system-ui";ctx.fillText("PRECIO FINAL",100,395);
         ctx.fillStyle="#162537";ctx.font="bold 108px system-ui";ctx.fillText(money(r.rounded),95,515);
         ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,575);ctx.lineTo(980,575);ctx.stroke();
