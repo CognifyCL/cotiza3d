@@ -397,7 +397,7 @@
       }
       window.cotiza3dBridge={
         guestSnapshot:()=>load(KEY),
-        cachedSnapshot:uid=>load(KEY+"-user-"+uid),
+        cachedSnapshot:uid=>localStorage.getItem(KEY+"-user-"+uid) ? load(KEY+"-user-"+uid) : null,
         enterAccount,exitAccount,
         setHooks:hooks=>{cloudHooks=hooks;$("cloudStatus").textContent="Conexión lista. Puedes crear una cuenta o iniciar sesión.";},
         setStatus:message=>{$("cloudStatus").textContent=message;}

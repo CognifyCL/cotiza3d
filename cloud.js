@@ -136,8 +136,15 @@ onAuthStateChanged(auth,async user=>{
     void flush(uid);
   } catch {
     if (version !== authVersion) return;
-    bridge.enterAccount(uid,user.email||"",bridge.cachedSnapshot(uid),
-      "Sin conexión con la nube. Puedes seguir trabajando; sincronizaremos al reconectar.");
+    const cached = bridge.cachedSnapshot(uid);
+    if (cached) {
+      bridge.enterAccount(uid,user.email||"",cached,
+        "Sin conexión con la nube. Puedes seguir trabajando; sincronizaremos al reconectar.");
+    } else {
+      // Do not replace an existing cloud profile with an empty first-load cache.
+      await signOut(auth);
+      bridge.setStatus("No se pudieron cargar tus datos. Vuelve a iniciar sesión con conexión.");
+    }
   }
 },error=>bridge.setStatus("No se pudo iniciar la sesión: "+(error.message||"error de conexión")));
 
