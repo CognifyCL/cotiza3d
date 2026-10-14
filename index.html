@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#162537">
+  <meta name="description" content="Cotiza impresiones 3D con tus filamentos y tarifas. Funciona en el navegador, sin cuenta ni servidor.">
+  <title>Cotiza3D � Calculadora de impresi�n</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#172c3f;background:#f5f6f4;font-synthesis:none}
+    *{box-sizing:border-box} body{margin:0;min-width:320px} button,input,select{font:inherit} button{cursor:pointer}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f5a36f;outline-offset:2px}
+    .shell{max-width:920px;margin:auto;padding:0 18px}
+    header{background:#162537;color:white;padding:20px 0 82px}
+    .bar{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:850;letter-spacing:-.03em}
+    .mark{display:grid;place-items:center;background:#ff8950;color:#162537;width:33px;height:33px;border-radius:10px;font-size:13px;letter-spacing:-.04em}
+    .header-action{color:#e2e9e8;background:transparent;border:1px solid #576879;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700}
+    .header-action:hover{background:#263a50}
+    .intro{padding:43px 0 0}
+    .kicker{color:#ffad7e;font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:850}
+    h1{font-size:clamp(32px,7vw,47px);line-height:1.08;letter-spacing:-.05em;margin:9px 0 10px}
+    .intro p{color:#b9c8d3;margin:0;max-width:550px;font-size:15px;line-height:1.55}
+    main{margin-top:-50px;padding-bottom:50px}
+    .panel{background:white;border:1px solid #e3e8e7;border-radius:19px;box-shadow:0 16px 36px rgba(20,36,49,.07);overflow:hidden}
+    .panel-inner{padding:24px}
+    h2{font-size:21px;letter-spacing:-.035em;margin:0}
+    h3{font-size:16px;margin:0;letter-spacing:-.02em}
+    .muted{color:#718392;font-size:13px;line-height:1.5;margin:7px 0 0}
+    .field{margin:19px 0 0}
+    label{display:block;font-size:13px;font-weight:750;color:#30465a;margin-bottom:8px}
+    .input{display:flex;align-items:center;width:100%;border:1px solid #ccd8dd;border-radius:11px;min-height:51px;background:#fff}
+    .input:focus-within{border-color:#e4743f;box-shadow:0 0 0 3px #fbe6da}
+    .input input,.input select{color:#172c3f;border:0;outline:0;width:100%;min-width:0;padding:12px 14px;background:transparent;font-weight:700;appearance:none}
+    .input input::-webkit-outer-spin-button,.input input::-webkit-inner-spin-button{appearance:none}
+    .unit{color:#8293a0;font-weight:700;font-size:12px;padding:0 13px;white-space:nowrap}
+    .select-wrap{position:relative}.select-wrap:after{content:"?";position:absolute;right:15px;top:10px;font-size:22px;pointer-events:none;color:#738695}
+    .select-wrap select{padding-right:38px}
+    .helper{font-size:12px;line-height:1.45;color:#82929d;margin:7px 0 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}
+    .btn{border-radius:11px;border:1px solid #d7e0e3;background:#fff;color:#263e52;font-weight:800;font-size:14px;min-height:47px;padding:11px 15px}
+    .btn:hover{background:#f4f7f7}
+    .btn.primary{border-color:#f47f47;background:#fa8650;color:#15283a}
+    .btn.primary:hover{background:#ff9a68}
+    .btn.fill{flex:1}
+    .btn.small{font-size:12px;padding:7px 10px;min-height:34px}
+    .btn.danger{color:#ac4531}
+    .stepbar{display:flex;align-items:center;gap:7px;padding-bottom:22px}
+    .stepbar span{height:5px;border-radius:9px;flex:1;background:#e4eae9}
+    .stepbar span.on{background:#fa8650}
+    .notice{border-radius:11px;background:#f2f7f6;color:#526d72;padding:12px 13px;font-size:12px;line-height:1.5;margin-top:19px}
+    .error{font-size:12px;color:#b84132;min-height:17px;margin:11px 0 0}
+    .hidden{display:none!important}
+    .quote-layout{display:grid;grid-template-columns:1fr 1fr;gap:17px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .text-button{border:0;background:none;color:#c75b2b;font-weight:800;font-size:13px;padding:5px}
+    .divider{border:0;border-top:1px solid #e8eeee;margin:23px 0}
+    .result-top{background:#f7f9f7;padding:23px 24px 18px;border-bottom:1px solid #e4ebe7}
+    .result-label{text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:850;color:#778b95}
+    .price{font-size:clamp(42px,7vw,55px);font-weight:850;letter-spacing:-.055em;line-height:1.1;margin:8px 0 4px;color:#152a3c}
+    .fine{color:#7b8e99;font-size:12px;line-height:1.5;margin:0}
+    .rows{padding:6px 24px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf1f0;font-size:13px;color:#607381}
+    .row b{color:#223b4e;font-variant-numeric:tabular-nums}
+    .row:last-child{border-bottom:0}
+    .row.emphasis{font-weight:800;color:#293f50}
+    .result-actions{padding:0 24px 23px}
+    .result-actions .btn{flex:1}
+    .gain{padding:13px 14px;background:#e8f5eb;border:1px solid #cfead7;border-radius:11px;color:#295d3a;font-size:12px;line-height:1.5;margin:4px 0 15px}
+    .gain strong{display:block;font-size:15px;margin-bottom:2px}
+    .empty{color:#81909a;font-size:13px;line-height:1.5;padding:24px 0 4px}
+    .filament-list{display:grid;gap:9px;margin:18px 0}
+    .filament-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px;border:1px solid #e1e8e7;border-radius:11px}
+    .filament-item strong{font-size:14px;display:block;word-break:break-word}
+    .filament-item span{font-size:12px;color:#778995;display:block;margin-top:3px}
+    .item-actions{display:flex;gap:3px;flex:none}
+    .item-actions button{border:0;background:transparent;color:#b4532c;font-size:12px;font-weight:800;padding:7px}
+    .settings-section{padding-bottom:26px;margin-bottom:25px;border-bottom:1px solid #e6ecea}
+    .settings-section:last-child{padding:0;margin:0;border:0}
+    .toast{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#162537;color:white;padding:11px 18px;border-radius:11px;font-size:13px;box-shadow:0 12px 30px #172c3f33;z-index:3;max-width:90vw;text-align:center}
+    @media(min-width:700px){.shell{padding:0 28px}.panel-inner{padding:29px}.intro{padding-top:53px}header{padding-bottom:95px}}
+    @media(max-width:699px){.quote-layout{display:block}.quote-layout>.panel+.panel{margin-top:16px}.grid{gap:0 12px}.result-actions .btn{flex:1 1 42%}}
+    @media(max-width:400px){.panel-inner{padding:20px}.rows{padding:6px 20px}.result-top{padding:20px}.result-actions{padding:0 20px 20px}.item-actions{flex-direction:column;gap:0}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <div class="bar"><div class="brand"><span class="mark">3D</span>Cotiza3D</div><button id="settingsButton" type="button" class="header-action hidden">Ajustes</button></div>
+      <div class="intro"><div class="kicker">Tu taller � tus precios</div><h1 id="heading">Cotiza tus impresiones con claridad.</h1><p id="subheading">Configura tus materiales una vez y crea cotizaciones desde el celular en segundos.</p></div>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="onboarding" class="panel hidden" aria-label="Configuraci�n inicial">
+      <div class="panel-inner">
+        <div class="stepbar" aria-hidden="true"><span id="stepDot1"></span><span id="stepDot2"></span><span id="stepDot3"></span></div>
+        <form id="nameStep" class="hidden" novalidate>
+          <h2>�C�mo te llamas?</h2><p class="muted">Solo usaremos tu nombre para personalizar la app. Queda guardado en este navegador.</p>
+          <div class="field"><label for="setupName">Tu nombre</label><div class="input"><input id="setupName" type="text" autocomplete="given-name" maxlength="50" placeholder="Ej.: Camilo" required></div></div>
+          <p class="error" id="nameError" role="alert"></p>
+          <div class="actions"><button class="btn primary fill" type="submit">Continuar</button></div>
+        </form>
+        <form id="firstFilamentStep" class="hidden" novalidate>
+          <h2>Registra tu primer filamento</h2><p class="muted">Podr�s agregar m�s y cambiar sus precios cuando quieras.</p>
+          <div class="field"><label for="firstFilamentName">Nombre del filamento</label><div class="input"><input id="firstFilamentName" maxlength="70" placeholder="Ej.: PLA blanco"></div></div>
+          <div class="grid">
+            <div class="field"><label for="firstFilamentPrice">Precio del rollo</label><div class="input"><span class="unit">$</span><input id="firstFilamentPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="15000"></div></div>
+            <div class="field"><label for="firstFilamentWeight">Peso del rollo</label><div class="input"><input id="firstFilamentWeight" type="number" min="1" step="any" inputmode="decimal" value="1000"><span class="unit">g</span></div></div>
+          </div>
+          <p class="error" id="firstFilamentError" role="alert"></p>
+          <div class="actions"><button class="btn" type="button" data-back="1">Volver</button><button class="btn primary fill" type="submit">Guardar filamento</button></div>
+        </form>
+        <form id="tariffStep" class="hidden" novalidate>
+          <h2>Define tus tarifas</h2><p class="muted">Tu cobro por hora debe cubrir electricidad, desgaste y ganancia. Los otros valores permiten estimar cu�nto te queda.</p>
+          <div class="grid">
+            <div class="field"><label for="setupHourly">Cobro por hora</label><div class="input"><span class="unit">$</span><input id="setupHourly" type="number" min="0" step="any" inputmode="decimal" value="1500"><span class="unit">/ h</span></div></div>
+            <div class="field"><label for="setupRound">Redondear hacia arriba a</label><div class="input"><span class="unit">$</span><input id="setupRound" type="number" min="1" step="1" inputmode="numeric" value="500"></div></div>
+            <div class="field"><label for="setupWatts">Consumo de impresora</label><div class="input"><input id="setupWatts" type="number" min="0" step="any" inputmode="decimal" value="120"><span class="unit">W</span></div></div>
+            <div class="field"><label for="setupKwh">Precio de electricidad</label><div class="input"><span class="unit">$</span><input id="setupKwh" type="number" min="0" step="any" inputmode="decimal" value="230"><span class="unit">/ kWh</span></div></div>
+            <div class="field"><label for="setupWear">Reserva mantenimiento</label><div class="input"><span class="unit">$</span><input id="setupWear" type="number" min="0" step="any" inputmode="decimal" value="250"><span class="unit">/ h</span></div></div>
+          </div>
+          <div class="notice">120 W, $230/kWh y $250/h son ejemplos editables. Consulta tu boleta y los costos reales de tu impresora.</div>
+          <p class="error" id="tariffError" role="alert"></p>
+          <div class="actions"><button class="btn" type="button" data-back="2">Volver</button><button class="btn primary fill" type="submit">Empezar a cotizar</button></div>
+        </form>
+      </div>
+    </section>
+
+    <div id="quoteView" class="quote-layout hidden">
+      <section class="panel" aria-label="Nueva cotizaci�n">
+        <div class="panel-inner">
+          <div class="section-head"><h2>Nueva cotizaci�n</h2><button id="addFilamentButton" class="text-button" type="button">+ Filamento</button></div>
+          <p class="muted">Ingresa el consumo y el tiempo para una impresi�n.</p>
+          <form id="quoteForm" novalidate>
+            <div class="field"><label for="quoteFilament">Filamento</label><div class="input select-wrap"><select id="quoteFilament" required></select></div></div>
+            <div class="field"><label for="quoteGrams">Filamento utilizado</label><div class="input"><input id="quoteGrams" type="number" inputmode="decimal" step="any" min="0" placeholder="Ej.: 49,68"><span class="unit">g</span></div><p class="helper">Incluye soportes y material descartado si el laminador los considera.</p></div>
+            <div class="grid">
+              <div class="field"><label for="quoteHours">Horas</label><div class="input"><input id="quoteHours" type="number" inputmode="numeric" min="0" step="1" placeholder="1"><span class="unit">h</span></div></div>
+              <div class="field"><label for="quoteMinutes">Minutos</label><div class="input"><input id="quoteMinutes" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="57"><span class="unit">min</span></div></div>
+            </div>
+            <p class="error" id="quoteError" role="alert"></p>
+            <div class="actions"><button id="calculateButton" class="btn primary fill" type="submit">Calcular precio</button></div>
+          </form>
+        </div>
+      </section>
+      <section class="panel" aria-label="Resultado de la cotizaci�n">
+        <div class="result-top"><div class="result-label">Precio redondeado</div><div class="price" id="suggestedPrice">-</div><p class="fine" id="resultDescription">Completa los datos para generar tu cotizaci�n.</p></div>
+        <div class="rows">
+          <div class="row"><span>Filamento</span><b id="materialCost">-</b></div>
+          <div class="row"><span>Tiempo de impresi�n</span><b id="timeCost">-</b></div>
+          <div class="row emphasis"><span>Precio real, sin redondeo</span><b id="realPrice">-</b></div>
+          <div class="row"><span>Ajuste por redondeo</span><b id="roundDifference">-</b></div>
+        </div>
+        <div id="exportArea" class="result-actions hidden">
+          <div class="gain"><strong id="estimatedBalance"></strong><span id="estimatedCosts"></span><br>Saldo estimado antes de impuestos y de valorar tu trabajo manual.</div>
+          <div class="actions"><button id="copyButton" type="button" class="btn fill">Copiar texto</button><button id="imageButton" type="button" class="btn fill">Guardar imagen</button><button id="shareButton" type="button" class="btn primary fill">Compartir imagen y texto</button></div>
+          <p class="helper">La imagen se descarga como PNG. En celulares compatibles, Compartir abre la hoja nativa para enviar o guardar el archivo.</p>
+        </div>
+      </section>
+    </div>
+
+    <section id="settingsView" class="panel hidden" aria-label="Ajustes">
+      <div class="panel-inner">
+        <div class="section-head"><h2>Ajustes</h2><button id="closeSettings" class="text-button" type="button">Volver a cotizar</button></div>
+        <div class="settings-section">
+          <div class="field"><label for="settingsName">Tu nombre</label><div class="input"><input id="settingsName" maxlength="50"></div></div>
+        </div>
+        <div class="settings-section">
+          <div class="section-head"><h3>Mis filamentos</h3></div>
+          <div id="filamentList" class="filament-list"></div>
+          <form id="filamentForm" novalidate>
+            <h3 id="filamentFormTitle">Agregar filamento</h3>
+            <div class="field"><label for="editFilamentName">Nombre</label><div class="input"><input id="editFilamentName" maxlength="70" placeholder="Ej.: PETG negro"></div></div>
+            <div class="grid">
+              <div class="field"><label for="editFilamentPrice">Precio del rollo</label><div class="input"><span class="unit">$</span><input id="editFilamentPrice" type="number" inputmode="decimal" min="0" step="any"></div></div>
+              <div class="field"><label for="editFilamentWeight">Peso del rollo</label><div class="input"><input id="editFilamentWeight" type="number" inputmode="decimal" min="1" step="any" value="1000"><span class="unit">g</span></div></div>
+            </div>
+            <p class="error" id="editFilamentError" role="alert"></p>
+            <div class="actions"><button class="btn primary" type="submit" id="saveFilamentButton">Agregar filamento</button><button class="btn hidden" type="button" id="cancelFilamentEdit">Cancelar</button></div>
+          </form>
+        </div>
+        <form id="settingsForm" class="settings-section" novalidate>
+          <h3>Tarifas</h3><p class="muted">El cobro por hora incluye los gastos. Electricidad y mantenimiento se descuentan para calcular tu saldo estimado.</p>
+          <div class="grid">
+            <div class="field"><label for="settingsHourly">Cobro por hora</label><div class="input"><span class="unit">$</span><input id="settingsHourly" type="number" min="0" step="any" inputmode="decimal"><span class="unit">/ h</span></div></div>
+            <div class="field"><label for="settingsRound">Redondear hacia arriba a</label><div class="input"><span class="unit">$</span><input id="settingsRound" type="number" min="1" step="1" inputmode="numeric"></div></div>
+            <div class="field"><label for="settingsWatts">Consumo de impresora</label><div class="input"><input id="settingsWatts" type="number" min="0" step="any" inputmode="decimal"><span class="unit">W</span></div></div>
+            <div class="field"><label for="settingsKwh">Precio de electricidad</label><div class="input"><span class="unit">$</span><input id="settingsKwh" type="number" min="0" step="any" inputmode="decimal"><span class="unit">/ kWh</span></div></div>
+            <div class="field"><label for="settingsWear">Reserva mantenimiento</label><div class="input"><span class="unit">$</span><input id="settingsWear" type="number" min="0" step="any" inputmode="decimal"><span class="unit">/ h</span></div></div>
+          </div>
+          <p class="error" id="settingsError" role="alert"></p>
+          <div class="actions"><button class="btn primary fill" type="submit">Guardar ajustes</button></div>
+        </form>
+        <div class="notice">Tus datos se guardan �nicamente en este navegador. Si borras sus datos o cambias de dispositivo, deber�s registrarlos de nuevo.</div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script>
+    (() => {
+      "use strict";
+      const KEY = "cotiza3d-v1";
+      const $ = id => document.getElementById(id);
+      const money = n => new Intl.NumberFormat("es-CL",{style:"currency",currency:"CLP",maximumFractionDigits:0}).format(n);
+      const exact = n => new Intl.NumberFormat("es-CL",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+      const value = id => Number($(id).value);
+      const validMoney = n => Number.isFinite(n) && n >= 0;
+      const validWeight = n => Number.isFinite(n) && n > 0;
+      const freshId = () => globalThis.crypto?.randomUUID?.() || "f-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+      let data = load(), step = 1, editId = null, result = null, toastTimer;
+
+      function load() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(KEY));
+          if(raw && typeof raw.name === "string" && Array.isArray(raw.filaments) && raw.tariffs) return raw;
+        } catch {}
+        return {name:"",filaments:[],tariffs:null};
+      }
+      function save() {
+        try { localStorage.setItem(KEY,JSON.stringify(data)); return true; }
+        catch { toast("No se pudo guardar en este navegador. Revisa el almacenamiento disponible."); return false; }
+      }
+      function toast(message) {
+        clearTimeout(toastTimer); $("toast").textContent=message; $("toast").classList.remove("hidden");
+        toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3300);
+      }
+      function showStep(n) {
+        step=n;
+        for(let i=1;i<=3;i++) $("stepDot"+i).classList.toggle("on",i<=n);
+        $("nameStep").classList.toggle("hidden",n!==1);
+        $("firstFilamentStep").classList.toggle("hidden",n!==2);
+        $("tariffStep").classList.toggle("hidden",n!==3);
+      }
+      function start() {
+        $("onboarding").classList.remove("hidden");
+        $("quoteView").classList.add("hidden");
+        $("settingsView").classList.add("hidden");
+        $("settingsButton").classList.add("hidden");
+        showStep(data.name ? data.filaments.length ? 3 : 2 : 1);
+      }
+      function showQuote() {
+        $("onboarding").classList.add("hidden");
+        $("settingsView").classList.add("hidden");
+        $("quoteView").classList.remove("hidden");
+        $("settingsButton").classList.remove("hidden");
+        $("heading").textContent="Hola, "+data.name+".";
+        $("subheading").textContent="Selecciona tu filamento, ingresa el consumo y prepara una cotizaci�n para compartir.";
+        renderOptions();
+        if(result) renderResult();
+      }
+      function renderOptions(preferred) {
+        const select=$("quoteFilament"), chosen=preferred || select.value;
+        select.replaceChildren();
+        data.filaments.forEach(f=>{
+          const option=document.createElement("option");
+          option.value=f.id;option.textContent=f.name+" � "+money(f.price)+"/"+f.weight+" g";
+          select.append(option);
+        });
+        if(data.filaments.some(f=>f.id===chosen)) select.value=chosen;
+      }
+      function readTariffs(prefix) {
+        const t={hourly:value(prefix+"Hourly"),round:value(prefix+"Round"),watts:value(prefix+"Watts"),kwh:value(prefix+"Kwh"),wear:value(prefix+"Wear")};
+        return Object.values(t).every(validMoney) && Number.isInteger(t.round) && t.round>=1 ? t : null;
+      }
+      function fillTariffs(prefix) {
+        const t=data.tariffs;
+        ["Hourly","Round","Watts","Kwh","Wear"].forEach((suffix,i)=>$(prefix+suffix).value=t[["hourly","round","watts","kwh","wear"][i]]);
+      }
+      function makeFilament(name,price,weight,id=freshId()) {
+        if(!name.trim() || !validMoney(price) || !validWeight(weight)) return null;
+        return {id,name:name.trim(),price,weight};
+      }
+      function showSettings() {
+        $("quoteView").classList.add("hidden");
+        $("settingsView").classList.remove("hidden");
+        $("settingsButton").classList.add("hidden");
+        $("heading").textContent="Tu taller, tus ajustes.";
+        $("subheading").textContent="Administra tus filamentos y tarifas. Los cambios quedan guardados en este navegador.";
+        $("settingsName").value=data.name;
+        fillTariffs("settings");
+        renderFilaments();
+        window.scrollTo({top:0,behavior:"smooth"});
+      }
+      function renderFilaments() {
+        const list=$("filamentList");
+        list.replaceChildren();
+        data.filaments.forEach(f=>{
+          const item=document.createElement("div");item.className="filament-item";
+          const info=document.createElement("div"),title=document.createElement("strong"),meta=document.createElement("span");
+          title.textContent=f.name;meta.textContent=money(f.price)+" � "+f.weight+" g � "+money(f.price/f.weight)+"/g";
+          info.append(title,meta);
+          const actions=document.createElement("div");actions.className="item-actions";
+          const edit=document.createElement("button");edit.type="button";edit.textContent="Editar";edit.dataset.action="edit";edit.dataset.id=f.id;
+          const remove=document.createElement("button");remove.type="button";remove.textContent="Eliminar";remove.dataset.action="remove";remove.dataset.id=f.id;
+          actions.append(edit,remove);item.append(info,actions);list.append(item);
+        });
+      }
+      function resetFilamentForm() {
+        editId=null;$("filamentForm").reset();$("editFilamentWeight").value="1000";
+        $("filamentFormTitle").textContent="Agregar filamento";$("saveFilamentButton").textContent="Agregar filamento";
+        $("cancelFilamentEdit").classList.add("hidden");$("editFilamentError").textContent="";
+      }
+      function quote() {
+        const grams=value("quoteGrams"), hours=value("quoteHours"), minutes=value("quoteMinutes");
+        const f=data.filaments.find(x=>x.id===$("quoteFilament").value), t=data.tariffs;
+        const valid=f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
+          validMoney(grams) && Number.isInteger(hours) && hours>=0 && Number.isInteger(minutes) && minutes>=0 && minutes<60 && hours*60+minutes>0;
+        $("quoteError").textContent=valid ? "" : "Ingresa gramos, horas y minutos v�lidos (0 a 59). El tiempo debe ser mayor que cero.";
+        if(!valid) return;
+        const duration=hours+minutes/60, material=grams*f.price/f.weight, time=duration*t.hourly;
+        const real=material+time;
+        const rounded=Math.ceil((real-1e-9)/t.round)*t.round;
+        const electricity=duration*t.watts/1000*t.kwh, wear=duration*t.wear;
+        result={filament:{...f},grams,hours,minutes,duration,material,time,real,rounded,electricity,wear,balance:rounded-material-electricity-wear,tariffs:{...t},name:data.name};
+        renderResult();
+      }
+      function renderResult() {
+        const r=result;if(!r)return;
+        $("suggestedPrice").textContent=money(r.rounded);
+        $("resultDescription").textContent=r.filament.name+" � "+exact(r.grams)+" g � "+r.hours+" h "+r.minutes+" min";
+        $("materialCost").textContent=money(r.material);
+        $("timeCost").textContent=money(r.time);
+        $("realPrice").textContent="$"+exact(r.real);
+        $("roundDifference").textContent=money(r.rounded-r.real);
+        $("estimatedBalance").textContent="Saldo estimado: "+money(r.balance);
+        $("estimatedCosts").textContent="Luz "+money(r.electricity)+" � mantenimiento "+money(r.wear);
+        $("exportArea").classList.remove("hidden");
+      }
+      function invalidateResult() {
+        result=null;
+        $("exportArea").classList.add("hidden");
+        $("suggestedPrice").textContent="-";
+        $("resultDescription").textContent="Calcula de nuevo con tus datos actualizados.";
+        ["materialCost","timeCost","realPrice","roundDifference"].forEach(id=>$(id).textContent="-");
+      }
+      function quoteText() {
+        const r=result;
+        return `COTIZACI�N DE IMPRESI�N 3D
+Preparada por: ${r.name}
+Filamento: ${r.filament.name}
+Consumo: ${exact(r.grams)} g
+Tiempo: ${r.hours} h ${r.minutes} min
+
+Material: ${money(r.material)}
+Impresi�n: ${money(r.time)}
+Precio real: $${exact(r.real)}
+Precio final redondeado: ${money(r.rounded)}`;
+      }
+      function cardImage() {
+        const r=result, canvas=document.createElement("canvas"), ctx=canvas.getContext("2d");
+        canvas.width=1080;canvas.height=1250;
+        ctx.fillStyle="#f5f6f4";ctx.fillRect(0,0,1080,1250);
+        ctx.fillStyle="#162537";ctx.fillRect(0,0,1080,275);
+        ctx.fillStyle="#ff985f";ctx.font="bold 38px system-ui";ctx.fillText("3D   Cotiza3D",80,105);
+        ctx.fillStyle="#ffffff";ctx.font="bold 67px system-ui";ctx.fillText("Cotizaci�n de impresi�n",80,200);
+        ctx.fillStyle="#ffffff";ctx.fillRect(48,245,984,945);
+        ctx.fillStyle="#738896";ctx.font="bold 25px system-ui";ctx.fillText("PRECIO FINAL REDONDEADO",100,340);
+        ctx.fillStyle="#162537";ctx.font="bold 108px system-ui";ctx.fillText(money(r.rounded),95,460);
+        ctx.fillStyle="#718391";ctx.font="30px system-ui";ctx.fillText("Precio real: $"+exact(r.real),100,520);
+        ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,570);ctx.lineTo(980,570);ctx.stroke();
+        function line(label,value,y) {
+          ctx.fillStyle="#657b89";ctx.font="30px system-ui";ctx.fillText(label,100,y);
+          ctx.fillStyle="#1c3346";ctx.font="bold 33px system-ui";ctx.textAlign="right";ctx.fillText(value,970,y);ctx.textAlign="left";
+        }
+        const filamentName=r.filament.name.length>27?r.filament.name.slice(0,26)+".":r.filament.name;
+        line("Filamento",filamentName,650);
+        line("Consumo",exact(r.grams)+" g",725);
+        line("Tiempo",r.hours+" h "+r.minutes+" min",800);
+        ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,845);ctx.lineTo(980,845);ctx.stroke();
+        line("Material",money(r.material),920);
+        line("Impresi�n",money(r.time),995);
+        ctx.fillStyle="#f6f8f7";ctx.fillRect(100,1050,880,90);
+        ctx.fillStyle="#587084";ctx.font="28px system-ui";ctx.fillText("Preparada por "+r.name.slice(0,35),125,1107);
+        return canvas;
+      }
+      function pngBlob() {
+        return new Promise((resolve,reject)=>{
+          const canvas=cardImage();
+          canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("No se pudo crear la imagen")),"image/png");
+        });
+      }
+      function download(blob) {
+        const url=URL.createObjectURL(blob),a=document.createElement("a");
+        a.href=url;a.download="cotizacion-impresion-3d.png";document.body.append(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
+      }
+      async function copyText() {
+        if(!result)return;
+        try { await navigator.clipboard.writeText(quoteText()); toast("Cotizaci�n copiada al portapapeles"); }
+        catch { toast("No se pudo copiar. Abre la p�gina por HTTPS o usa Compartir."); }
+      }
+      async function saveImage() {
+        if(!result)return;
+        try { download(await pngBlob()); toast("Imagen PNG descargada. Puedes guardarla en tu galer�a."); }
+        catch { toast("No se pudo generar la imagen en este navegador."); }
+      }
+      async function shareQuote() {
+        if(!result)return;
+        const text=quoteText();
+        try {
+          const blob=await pngBlob(),file=new File([blob],"cotizacion-impresion-3d.png",{type:"image/png"});
+          if(navigator.share && navigator.canShare?.({files:[file]})) {
+            await navigator.share({title:"Cotizaci�n de impresi�n 3D",text,files:[file]});
+            return;
+          }
+          if(navigator.share) { await navigator.share({title:"Cotizaci�n de impresi�n 3D",text}); download(blob); return; }
+          download(blob);
+          await navigator.clipboard.writeText(text);
+          toast("Imagen descargada y texto copiado para compartir");
+        } catch(e) {
+          if(e?.name!=="AbortError") toast("No se pudo compartir. Prueba Copiar texto o Guardar imagen.");
+        }
+      }
+      $("nameStep").addEventListener("submit",e=>{
+        e.preventDefault();const name=$("setupName").value.trim();
+        $("nameError").textContent=name ? "" : "Ingresa tu nombre para continuar.";
+        if(name){data.name=name;save();showStep(2);}
+      });
+      $("firstFilamentStep").addEventListener("submit",e=>{
+        e.preventDefault();const f=$("firstFilamentPrice").value!=="" && $("firstFilamentWeight").value!=="" ?
+          makeFilament($("firstFilamentName").value,value("firstFilamentPrice"),value("firstFilamentWeight")) : null;
+        $("firstFilamentError").textContent=f ? "" : "Completa nombre, precio v�lido y peso mayor a cero.";
+        if(f){data.filaments=[f];save();showStep(3);}
+      });
+      document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>showStep(Number(b.dataset.back))));
+      $("tariffStep").addEventListener("submit",e=>{
+        e.preventDefault();const t=["Hourly","Round","Watts","Kwh","Wear"].every(x=>$("setup"+x).value!=="") ? readTariffs("setup") : null;
+        $("tariffError").textContent=t ? "" : "Revisa las tarifas y el redondeo (entero mayor a cero).";
+        if(t){data.tariffs=t;save();showQuote();}
+      });
+      $("quoteForm").addEventListener("submit",e=>{e.preventDefault();quote();});
+      $("settingsButton").addEventListener("click",showSettings);
+      $("closeSettings").addEventListener("click",showQuote);
+      $("addFilamentButton").addEventListener("click",()=>{showSettings();$("editFilamentName").focus();});
+      $("filamentList").addEventListener("click",e=>{
+        const b=e.target.closest("button[data-action]");if(!b)return;
+        const f=data.filaments.find(x=>x.id===b.dataset.id);if(!f)return;
+        if(b.dataset.action==="edit") {
+          editId=f.id;$("editFilamentName").value=f.name;$("editFilamentPrice").value=f.price;$("editFilamentWeight").value=f.weight;
+          $("filamentFormTitle").textContent="Editar filamento";$("saveFilamentButton").textContent="Guardar cambios";
+          $("cancelFilamentEdit").classList.remove("hidden");$("editFilamentName").focus();
+        } else {
+          if(data.filaments.length===1){toast("Debes conservar al menos un filamento.");return;}
+          if(!confirm("�Eliminar ""+f.name+"" de tu lista?"))return;
+          data.filaments=data.filaments.filter(x=>x.id!==f.id);
+          if(editId===f.id)resetFilamentForm();
+          save();renderFilaments();renderOptions();invalidateResult();toast("Filamento eliminado");
+        }
+      });
+      $("filamentForm").addEventListener("submit",e=>{
+        e.preventDefault();const f=$("editFilamentPrice").value!=="" && $("editFilamentWeight").value!=="" ?
+          makeFilament($("editFilamentName").value,value("editFilamentPrice"),value("editFilamentWeight"),editId||freshId()) : null;
+        $("editFilamentError").textContent=f ? "" : "Completa nombre, precio v�lido y peso mayor a cero.";
+        if(!f)return;
+        if(editId) data.filaments=data.filaments.map(x=>x.id===editId?f:x);
+        else data.filaments.push(f);
+        save();renderFilaments();renderOptions(f.id);invalidateResult();resetFilamentForm();toast("Filamento guardado");
+      });
+      $("cancelFilamentEdit").addEventListener("click",resetFilamentForm);
+      $("settingsForm").addEventListener("submit",e=>{
+        e.preventDefault();const t=["Hourly","Round","Watts","Kwh","Wear"].every(x=>$("settings"+x).value!=="") ? readTariffs("settings") : null,name=$("settingsName").value.trim();
+        $("settingsError").textContent=!name ? "Ingresa tu nombre." : !t ? "Revisa las tarifas y el redondeo." : "";
+        if(!name||!t)return;
+        data.name=name;data.tariffs=t;save();
+        invalidateResult();
+        showQuote();toast("Ajustes guardados");
+      });
+      $("copyButton").addEventListener("click",copyText);
+      $("imageButton").addEventListener("click",saveImage);
+      $("shareButton").addEventListener("click",shareQuote);
+      if(data.name && data.filaments.length && data.tariffs) showQuote(); else start();
+    })();
+  </script>
+</body>
+</html>
+
