@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#162537">
   <meta name="description" content="Cotiza impresiones 3D con tus filamentos y tarifas. Funciona en el navegador, sin cuenta ni servidor.">
-  <title>Cotiza3D � Calculadora de impresi�n</title>
+  <title>Cotiza3D · Calculadora de impresión</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#172c3f;background:#f5f6f4;font-synthesis:none}
     *{box-sizing:border-box} body{margin:0;min-width:320px} button,input,select{font:inherit} button{cursor:pointer}
@@ -34,7 +34,7 @@
     .input input,.input select{color:#172c3f;border:0;outline:0;width:100%;min-width:0;padding:12px 14px;background:transparent;font-weight:700;appearance:none}
     .input input::-webkit-outer-spin-button,.input input::-webkit-inner-spin-button{appearance:none}
     .unit{color:#8293a0;font-weight:700;font-size:12px;padding:0 13px;white-space:nowrap}
-    .select-wrap{position:relative}.select-wrap:after{content:"?";position:absolute;right:15px;top:10px;font-size:22px;pointer-events:none;color:#738695}
+    .select-wrap{position:relative}.select-wrap:after{content:"⌄";position:absolute;right:15px;top:10px;font-size:22px;pointer-events:none;color:#738695}
     .select-wrap select{padding-right:38px}
     .helper{font-size:12px;line-height:1.45;color:#82929d;margin:7px 0 0}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
@@ -88,21 +88,21 @@
   <header>
     <div class="shell">
       <div class="bar"><div class="brand"><span class="mark">3D</span>Cotiza3D</div><button id="settingsButton" type="button" class="header-action hidden">Ajustes</button></div>
-      <div class="intro"><div class="kicker">Tu taller � tus precios</div><h1 id="heading">Cotiza tus impresiones con claridad.</h1><p id="subheading">Configura tus materiales una vez y crea cotizaciones desde el celular en segundos.</p></div>
+      <div class="intro"><div class="kicker">Tu taller · tus precios</div><h1 id="heading">Cotiza tus impresiones con claridad.</h1><p id="subheading">Configura tus materiales una vez y crea cotizaciones desde el celular en segundos.</p></div>
     </div>
   </header>
   <main class="shell">
-    <section id="onboarding" class="panel hidden" aria-label="Configuraci�n inicial">
+    <section id="onboarding" class="panel hidden" aria-label="Configuración inicial">
       <div class="panel-inner">
         <div class="stepbar" aria-hidden="true"><span id="stepDot1"></span><span id="stepDot2"></span><span id="stepDot3"></span></div>
         <form id="nameStep" class="hidden" novalidate>
-          <h2>�C�mo te llamas?</h2><p class="muted">Solo usaremos tu nombre para personalizar la app. Queda guardado en este navegador.</p>
+          <h2>¿Cómo te llamas?</h2><p class="muted">Solo usaremos tu nombre para personalizar la app. Queda guardado en este navegador.</p>
           <div class="field"><label for="setupName">Tu nombre</label><div class="input"><input id="setupName" type="text" autocomplete="given-name" maxlength="50" placeholder="Ej.: Camilo" required></div></div>
           <p class="error" id="nameError" role="alert"></p>
           <div class="actions"><button class="btn primary fill" type="submit">Continuar</button></div>
         </form>
         <form id="firstFilamentStep" class="hidden" novalidate>
-          <h2>Registra tu primer filamento</h2><p class="muted">Podr�s agregar m�s y cambiar sus precios cuando quieras.</p>
+          <h2>Registra tu primer filamento</h2><p class="muted">Podrás agregar más y cambiar sus precios cuando quieras.</p>
           <div class="field"><label for="firstFilamentName">Nombre del filamento</label><div class="input"><input id="firstFilamentName" maxlength="70" placeholder="Ej.: PLA blanco"></div></div>
           <div class="grid">
             <div class="field"><label for="firstFilamentPrice">Precio del rollo</label><div class="input"><span class="unit">$</span><input id="firstFilamentPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="15000"></div></div>
@@ -112,7 +112,7 @@
           <div class="actions"><button class="btn" type="button" data-back="1">Volver</button><button class="btn primary fill" type="submit">Guardar filamento</button></div>
         </form>
         <form id="tariffStep" class="hidden" novalidate>
-          <h2>Define tus tarifas</h2><p class="muted">Tu cobro por hora debe cubrir electricidad, desgaste y ganancia. Los otros valores permiten estimar cu�nto te queda.</p>
+          <h2>Define tus tarifas</h2><p class="muted">Tu cobro por hora debe cubrir electricidad, desgaste y ganancia. Los otros valores permiten estimar cuánto te queda.</p>
           <div class="grid">
             <div class="field"><label for="setupHourly">Cobro por hora</label><div class="input"><span class="unit">$</span><input id="setupHourly" type="number" min="0" step="any" inputmode="decimal" value="1500"><span class="unit">/ h</span></div></div>
             <div class="field"><label for="setupRound">Redondear hacia arriba a</label><div class="input"><span class="unit">$</span><input id="setupRound" type="number" min="1" step="1" inputmode="numeric" value="500"></div></div>
@@ -128,10 +128,10 @@
     </section>
 
     <div id="quoteView" class="quote-layout hidden">
-      <section class="panel" aria-label="Nueva cotizaci�n">
+      <section class="panel" aria-label="Nueva cotización">
         <div class="panel-inner">
-          <div class="section-head"><h2>Nueva cotizaci�n</h2><button id="addFilamentButton" class="text-button" type="button">+ Filamento</button></div>
-          <p class="muted">Ingresa el consumo y el tiempo para una impresi�n.</p>
+          <div class="section-head"><h2>Nueva cotización</h2><button id="addFilamentButton" class="text-button" type="button">+ Filamento</button></div>
+          <p class="muted">Ingresa el consumo y el tiempo para una impresión.</p>
           <form id="quoteForm" novalidate>
             <div class="field"><label for="quoteFilament">Filamento</label><div class="input select-wrap"><select id="quoteFilament" required></select></div></div>
             <div class="field"><label for="quoteGrams">Filamento utilizado</label><div class="input"><input id="quoteGrams" type="number" inputmode="decimal" step="any" min="0" placeholder="Ej.: 49,68"><span class="unit">g</span></div><p class="helper">Incluye soportes y material descartado si el laminador los considera.</p></div>
@@ -144,13 +144,13 @@
           </form>
         </div>
       </section>
-      <section class="panel" aria-label="Resultado de la cotizaci�n">
-        <div class="result-top"><div class="result-label">Precio redondeado</div><div class="price" id="suggestedPrice">-</div><p class="fine" id="resultDescription">Completa los datos para generar tu cotizaci�n.</p></div>
+      <section class="panel" aria-label="Resultado de la cotización">
+        <div class="result-top"><div class="result-label">Precio redondeado</div><div class="price" id="suggestedPrice">—</div><p class="fine" id="resultDescription">Completa los datos para generar tu cotización.</p></div>
         <div class="rows">
-          <div class="row"><span>Filamento</span><b id="materialCost">-</b></div>
-          <div class="row"><span>Tiempo de impresi�n</span><b id="timeCost">-</b></div>
-          <div class="row emphasis"><span>Precio real, sin redondeo</span><b id="realPrice">-</b></div>
-          <div class="row"><span>Ajuste por redondeo</span><b id="roundDifference">-</b></div>
+          <div class="row"><span>Filamento</span><b id="materialCost">—</b></div>
+          <div class="row"><span>Tiempo de impresión</span><b id="timeCost">—</b></div>
+          <div class="row emphasis"><span>Precio real, sin redondeo</span><b id="realPrice">—</b></div>
+          <div class="row"><span>Ajuste por redondeo</span><b id="roundDifference">—</b></div>
         </div>
         <div id="exportArea" class="result-actions hidden">
           <div class="gain"><strong id="estimatedBalance"></strong><span id="estimatedCosts"></span><br>Saldo estimado antes de impuestos y de valorar tu trabajo manual.</div>
@@ -192,7 +192,7 @@
           <p class="error" id="settingsError" role="alert"></p>
           <div class="actions"><button class="btn primary fill" type="submit">Guardar ajustes</button></div>
         </form>
-        <div class="notice">Tus datos se guardan �nicamente en este navegador. Si borras sus datos o cambias de dispositivo, deber�s registrarlos de nuevo.</div>
+        <div class="notice">Tus datos se guardan únicamente en este navegador. Si borras sus datos o cambias de dispositivo, deberás registrarlos de nuevo.</div>
       </div>
     </section>
   </main>
@@ -245,7 +245,7 @@
         $("quoteView").classList.remove("hidden");
         $("settingsButton").classList.remove("hidden");
         $("heading").textContent="Hola, "+data.name+".";
-        $("subheading").textContent="Selecciona tu filamento, ingresa el consumo y prepara una cotizaci�n para compartir.";
+        $("subheading").textContent="Selecciona tu filamento, ingresa el consumo y prepara una cotización para compartir.";
         renderOptions();
         if(result) renderResult();
       }
@@ -254,7 +254,7 @@
         select.replaceChildren();
         data.filaments.forEach(f=>{
           const option=document.createElement("option");
-          option.value=f.id;option.textContent=f.name+" � "+money(f.price)+"/"+f.weight+" g";
+          option.value=f.id;option.textContent=f.name+" · "+money(f.price)+"/"+f.weight+" g";
           select.append(option);
         });
         if(data.filaments.some(f=>f.id===chosen)) select.value=chosen;
@@ -288,7 +288,7 @@
         data.filaments.forEach(f=>{
           const item=document.createElement("div");item.className="filament-item";
           const info=document.createElement("div"),title=document.createElement("strong"),meta=document.createElement("span");
-          title.textContent=f.name;meta.textContent=money(f.price)+" � "+f.weight+" g � "+money(f.price/f.weight)+"/g";
+          title.textContent=f.name;meta.textContent=money(f.price)+" · "+f.weight+" g · "+money(f.price/f.weight)+"/g";
           info.append(title,meta);
           const actions=document.createElement("div");actions.className="item-actions";
           const edit=document.createElement("button");edit.type="button";edit.textContent="Editar";edit.dataset.action="edit";edit.dataset.id=f.id;
@@ -306,7 +306,7 @@
         const f=data.filaments.find(x=>x.id===$("quoteFilament").value), t=data.tariffs;
         const valid=f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
           validMoney(grams) && Number.isInteger(hours) && hours>=0 && Number.isInteger(minutes) && minutes>=0 && minutes<60 && hours*60+minutes>0;
-        $("quoteError").textContent=valid ? "" : "Ingresa gramos, horas y minutos v�lidos (0 a 59). El tiempo debe ser mayor que cero.";
+        $("quoteError").textContent=valid ? "" : "Ingresa gramos, horas y minutos válidos (0 a 59). El tiempo debe ser mayor que cero.";
         if(!valid) { invalidateResult(); return; }
         const duration=hours+minutes/60, material=grams*f.price/f.weight, time=duration*t.hourly;
         const real=material+time;
@@ -318,32 +318,32 @@
       function renderResult() {
         const r=result;if(!r)return;
         $("suggestedPrice").textContent=money(r.rounded);
-        $("resultDescription").textContent=r.filament.name+" � "+exact(r.grams)+" g � "+r.hours+" h "+r.minutes+" min";
+        $("resultDescription").textContent=r.filament.name+" · "+exact(r.grams)+" g · "+r.hours+" h "+r.minutes+" min";
         $("materialCost").textContent=money(r.material);
         $("timeCost").textContent=money(r.time);
         $("realPrice").textContent="$"+exact(r.real);
         $("roundDifference").textContent=money(r.rounded-r.real);
         $("estimatedBalance").textContent="Saldo estimado: "+money(r.balance);
-        $("estimatedCosts").textContent="Luz "+money(r.electricity)+" � mantenimiento "+money(r.wear);
+        $("estimatedCosts").textContent="Luz "+money(r.electricity)+" · mantenimiento "+money(r.wear);
         $("exportArea").classList.remove("hidden");
       }
       function invalidateResult() {
         result=null;
         $("exportArea").classList.add("hidden");
-        $("suggestedPrice").textContent="-";
+        $("suggestedPrice").textContent="—";
         $("resultDescription").textContent="Calcula de nuevo con tus datos actualizados.";
-        ["materialCost","timeCost","realPrice","roundDifference"].forEach(id=>$(id).textContent="-");
+        ["materialCost","timeCost","realPrice","roundDifference"].forEach(id=>$(id).textContent="—");
       }
       function quoteText() {
         const r=result;
-        return `COTIZACI�N DE IMPRESI�N 3D
+        return `COTIZACIÓN DE IMPRESIÓN 3D
 Preparada por: ${r.name}
 Filamento: ${r.filament.name}
 Consumo: ${exact(r.grams)} g
 Tiempo: ${r.hours} h ${r.minutes} min
 
 Material: ${money(r.material)}
-Impresi�n: ${money(r.time)}
+Impresión: ${money(r.time)}
 Precio real: $${exact(r.real)}
 Precio final redondeado: ${money(r.rounded)}`;
       }
@@ -353,7 +353,7 @@ Precio final redondeado: ${money(r.rounded)}`;
         ctx.fillStyle="#f5f6f4";ctx.fillRect(0,0,1080,1250);
         ctx.fillStyle="#162537";ctx.fillRect(0,0,1080,275);
         ctx.fillStyle="#ff985f";ctx.font="bold 38px system-ui";ctx.fillText("3D   Cotiza3D",80,105);
-        ctx.fillStyle="#ffffff";ctx.font="bold 67px system-ui";ctx.fillText("Cotizaci�n de impresi�n",80,200);
+        ctx.fillStyle="#ffffff";ctx.font="bold 67px system-ui";ctx.fillText("Cotización de impresión",80,200);
         ctx.fillStyle="#ffffff";ctx.fillRect(48,245,984,945);
         ctx.fillStyle="#738896";ctx.font="bold 25px system-ui";ctx.fillText("PRECIO FINAL REDONDEADO",100,340);
         ctx.fillStyle="#162537";ctx.font="bold 108px system-ui";ctx.fillText(money(r.rounded),95,460);
@@ -363,13 +363,13 @@ Precio final redondeado: ${money(r.rounded)}`;
           ctx.fillStyle="#657b89";ctx.font="30px system-ui";ctx.fillText(label,100,y);
           ctx.fillStyle="#1c3346";ctx.font="bold 33px system-ui";ctx.textAlign="right";ctx.fillText(value,970,y);ctx.textAlign="left";
         }
-        const filamentName=r.filament.name.length>27?r.filament.name.slice(0,26)+".":r.filament.name;
+        const filamentName=r.filament.name.length>27?r.filament.name.slice(0,26)+"…":r.filament.name;
         line("Filamento",filamentName,650);
         line("Consumo",exact(r.grams)+" g",725);
         line("Tiempo",r.hours+" h "+r.minutes+" min",800);
         ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,845);ctx.lineTo(980,845);ctx.stroke();
         line("Material",money(r.material),920);
-        line("Impresi�n",money(r.time),995);
+        line("Impresión",money(r.time),995);
         ctx.fillStyle="#f6f8f7";ctx.fillRect(100,1050,880,90);
         ctx.fillStyle="#587084";ctx.font="28px system-ui";ctx.fillText("Preparada por "+r.name.slice(0,35),125,1107);
         return canvas;
@@ -387,12 +387,12 @@ Precio final redondeado: ${money(r.rounded)}`;
       }
       async function copyText() {
         if(!result)return;
-        try { await navigator.clipboard.writeText(quoteText()); toast("Cotizaci�n copiada al portapapeles"); }
-        catch { toast("No se pudo copiar. Abre la p�gina por HTTPS o usa Compartir."); }
+        try { await navigator.clipboard.writeText(quoteText()); toast("Cotización copiada al portapapeles"); }
+        catch { toast("No se pudo copiar. Abre la página por HTTPS o usa Compartir."); }
       }
       async function saveImage() {
         if(!result)return;
-        try { download(await pngBlob()); toast("Imagen PNG descargada. Puedes guardarla en tu galer�a."); }
+        try { download(await pngBlob()); toast("Imagen PNG descargada. Puedes guardarla en tu galería."); }
         catch { toast("No se pudo generar la imagen en este navegador."); }
       }
       async function shareQuote() {
@@ -401,10 +401,10 @@ Precio final redondeado: ${money(r.rounded)}`;
         try {
           const blob=await pngBlob(),file=new File([blob],"cotizacion-impresion-3d.png",{type:"image/png"});
           if(navigator.share && navigator.canShare?.({files:[file]})) {
-            await navigator.share({title:"Cotizaci�n de impresi�n 3D",text,files:[file]});
+            await navigator.share({title:"Cotización de impresión 3D",text,files:[file]});
             return;
           }
-          if(navigator.share) { await navigator.share({title:"Cotizaci�n de impresi�n 3D",text}); download(blob); return; }
+          if(navigator.share) { await navigator.share({title:"Cotización de impresión 3D",text}); download(blob); return; }
           download(blob);
           await navigator.clipboard.writeText(text);
           toast("Imagen descargada y texto copiado para compartir");
@@ -420,7 +420,7 @@ Precio final redondeado: ${money(r.rounded)}`;
       $("firstFilamentStep").addEventListener("submit",e=>{
         e.preventDefault();const f=$("firstFilamentPrice").value!=="" && $("firstFilamentWeight").value!=="" ?
           makeFilament($("firstFilamentName").value,value("firstFilamentPrice"),value("firstFilamentWeight")) : null;
-        $("firstFilamentError").textContent=f ? "" : "Completa nombre, precio v�lido y peso mayor a cero.";
+        $("firstFilamentError").textContent=f ? "" : "Completa nombre, precio válido y peso mayor a cero.";
         if(f){data.filaments=[f];save();showStep(3);}
       });
       document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>showStep(Number(b.dataset.back))));
@@ -444,7 +444,7 @@ Precio final redondeado: ${money(r.rounded)}`;
           $("cancelFilamentEdit").classList.remove("hidden");$("editFilamentName").focus();
         } else {
           if(data.filaments.length===1){toast("Debes conservar al menos un filamento.");return;}
-          if(!confirm("�Eliminar ""+f.name+"" de tu lista?"))return;
+          if(!confirm("¿Eliminar “"+f.name+"” de tu lista?"))return;
           data.filaments=data.filaments.filter(x=>x.id!==f.id);
           if(editId===f.id)resetFilamentForm();
           save();renderFilaments();renderOptions();invalidateResult();toast("Filamento eliminado");
@@ -453,7 +453,7 @@ Precio final redondeado: ${money(r.rounded)}`;
       $("filamentForm").addEventListener("submit",e=>{
         e.preventDefault();const f=$("editFilamentPrice").value!=="" && $("editFilamentWeight").value!=="" ?
           makeFilament($("editFilamentName").value,value("editFilamentPrice"),value("editFilamentWeight"),editId||freshId()) : null;
-        $("editFilamentError").textContent=f ? "" : "Completa nombre, precio v�lido y peso mayor a cero.";
+        $("editFilamentError").textContent=f ? "" : "Completa nombre, precio válido y peso mayor a cero.";
         if(!f)return;
         if(editId) data.filaments=data.filaments.map(x=>x.id===editId?f:x);
         else data.filaments.push(f);
@@ -476,4 +476,3 @@ Precio final redondeado: ${money(r.rounded)}`;
   </script>
 </body>
 </html>
-
