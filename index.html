@@ -355,7 +355,7 @@
           toast("El filamento original fue eliminado. Selecciona otro para recalcular.");
         }
         $("quoteGrams").value=result.grams;$("quoteHours").value=result.hours;$("quoteMinutes").value=result.minutes;
-        $("quoteError").textContent="";renderResult();window.scrollTo({top:0,behavior:"smooth"});
+        $("quoteError").textContent="";renderResult();renderSavedQuotes();window.scrollTo({top:0,behavior:"smooth"});
       }
       function quote() {
         const title=$("quoteTitle").value.trim();
@@ -496,7 +496,10 @@ Precio final: ${money(r.rounded)}`;
         const b=e.target.closest("button[data-action]");if(!b)return;
         const q=data.quotes.find(x=>x.id===b.dataset.id);if(!q)return;
         if(b.dataset.action==="open") {openQuote(q);return;}
-        if(!confirm("¿Eliminar la cotización «"+q.title+"»?"))return;
+        if(b.dataset.action==="remove") {
+          b.dataset.action="confirm-remove";b.textContent="Confirmar eliminación";return;
+        }
+        if(b.dataset.action!=="confirm-remove")return;
         const oldQuotes=data.quotes;
         data.quotes=oldQuotes.filter(x=>x.id!==q.id);
         if(!save()) {data.quotes=oldQuotes;return;}
