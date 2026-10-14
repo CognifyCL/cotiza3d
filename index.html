@@ -307,7 +307,7 @@
         const valid=f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
           validMoney(grams) && Number.isInteger(hours) && hours>=0 && Number.isInteger(minutes) && minutes>=0 && minutes<60 && hours*60+minutes>0;
         $("quoteError").textContent=valid ? "" : "Ingresa gramos, horas y minutos v�lidos (0 a 59). El tiempo debe ser mayor que cero.";
-        if(!valid) return;
+        if(!valid) { invalidateResult(); return; }
         const duration=hours+minutes/60, material=grams*f.price/f.weight, time=duration*t.hourly;
         const real=material+time;
         const rounded=Math.ceil((real-1e-9)/t.round)*t.round;
@@ -430,6 +430,8 @@ Precio final redondeado: ${money(r.rounded)}`;
         if(t){data.tariffs=t;save();showQuote();}
       });
       $("quoteForm").addEventListener("submit",e=>{e.preventDefault();quote();});
+      $("quoteForm").addEventListener("input",()=>{if(result)invalidateResult();$("quoteError").textContent="";});
+      $("quoteFilament").addEventListener("change",()=>{if(result)invalidateResult();});
       $("settingsButton").addEventListener("click",showSettings);
       $("closeSettings").addEventListener("click",showQuote);
       $("addFilamentButton").addEventListener("click",()=>{showSettings();$("editFilamentName").focus();});
