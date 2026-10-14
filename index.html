@@ -74,6 +74,11 @@
     .filament-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px;border:1px solid #e1e8e7;border-radius:11px}
     .filament-item strong{font-size:14px;display:block;word-break:break-word}
     .filament-item span{font-size:12px;color:#778995;display:block;margin-top:3px}
+    .saved-panel{margin-top:17px}
+    .saved-list{display:grid;gap:9px;margin-top:18px}
+    .saved-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e1e8e7;border-radius:11px;padding:13px}
+    .saved-item strong{display:block;font-size:14px;overflow-wrap:anywhere}
+    .saved-item span{display:block;font-size:12px;color:#778995;margin-top:4px}
     .item-actions{display:flex;gap:3px;flex:none}
     .item-actions button{border:0;background:transparent;color:#b4532c;font-size:12px;font-weight:800;padding:7px}
     .settings-section{padding-bottom:26px;margin-bottom:25px;border-bottom:1px solid #e6ecea}
@@ -81,7 +86,7 @@
     .toast{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#162537;color:white;padding:11px 18px;border-radius:11px;font-size:13px;box-shadow:0 12px 30px #172c3f33;z-index:3;max-width:90vw;text-align:center}
     @media(min-width:700px){.shell{padding:0 28px}.panel-inner{padding:29px}.intro{padding-top:53px}header{padding-bottom:95px}}
     @media(max-width:699px){.quote-layout{display:block}.quote-layout>.panel+.panel{margin-top:16px}.grid{gap:0 12px}.result-actions .btn{flex:1 1 42%}}
-    @media(max-width:400px){.panel-inner{padding:20px}.rows{padding:6px 20px}.result-top{padding:20px}.result-actions{padding:0 20px 20px}.item-actions{flex-direction:column;gap:0}}
+    @media(max-width:400px){.panel-inner{padding:20px}.rows{padding:6px 20px}.result-top{padding:20px}.result-actions{padding:0 20px 20px}.item-actions{flex-direction:column;gap:0}.saved-item{align-items:flex-start}.saved-item .item-actions{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -133,6 +138,7 @@
           <div class="section-head"><h2>Nueva cotización</h2><button id="addFilamentButton" class="text-button" type="button">+ Filamento</button></div>
           <p class="muted">Ingresa el consumo y el tiempo para una impresión.</p>
           <form id="quoteForm" novalidate>
+            <div class="field"><label for="quoteTitle">Nombre de la cotización</label><div class="input"><input id="quoteTitle" type="text" maxlength="80" placeholder="Ej.: Soporte para celular" required></div></div>
             <div class="field"><label for="quoteFilament">Filamento</label><div class="input select-wrap"><select id="quoteFilament" required></select></div></div>
             <div class="field"><label for="quoteGrams">Filamento utilizado</label><div class="input"><input id="quoteGrams" type="number" inputmode="decimal" step="any" min="0" placeholder="Ej.: 49,68"><span class="unit">g</span></div><p class="helper">Incluye soportes y material descartado si el laminador los considera.</p></div>
             <div class="grid">
@@ -159,6 +165,14 @@
         </div>
       </section>
     </div>
+
+    <section id="savedQuotesView" class="panel saved-panel hidden" aria-label="Cotizaciones guardadas">
+      <div class="panel-inner">
+        <div class="section-head"><h2>Cotizaciones guardadas</h2><button id="newQuoteButton" type="button" class="text-button">+ Nueva</button></div>
+        <p class="muted">Cada cálculo se guarda en este navegador. Abre una cotización para revisar o actualizar sus datos.</p>
+        <div id="savedQuotesList" class="saved-list"></div>
+      </div>
+    </section>
 
     <section id="settingsView" class="panel hidden" aria-label="Ajustes">
       <div class="panel-inner">
@@ -208,14 +222,17 @@
       const validMoney = n => Number.isFinite(n) && n >= 0;
       const validWeight = n => Number.isFinite(n) && n > 0;
       const freshId = () => globalThis.crypto?.randomUUID?.() || "f-"+Date.now()+"-"+Math.random().toString(36).slice(2);
-      let data = load(), step = 1, editId = null, result = null, toastTimer;
+      let data = load(), step = 1, editId = null, currentQuoteId = null, result = null, toastTimer;
 
       function load() {
         try {
           const raw = JSON.parse(localStorage.getItem(KEY));
-          if(raw && typeof raw.name === "string" && Array.isArray(raw.filaments) && raw.tariffs) return raw;
+          if(raw && typeof raw.name === "string" && Array.isArray(raw.filaments) && (raw.tariffs === null || typeof raw.tariffs === "object")) {
+            raw.quotes=Array.isArray(raw.quotes) ? raw.quotes : [];
+            return raw;
+          }
         } catch {}
-        return {name:"",filaments:[],tariffs:null};
+        return {name:"",filaments:[],tariffs:null,quotes:[]};
       }
       function save() {
         try { localStorage.setItem(KEY,JSON.stringify(data)); return true; }
@@ -235,6 +252,7 @@
       function start() {
         $("onboarding").classList.remove("hidden");
         $("quoteView").classList.add("hidden");
+        $("savedQuotesView").classList.add("hidden");
         $("settingsView").classList.add("hidden");
         $("settingsButton").classList.add("hidden");
         showStep(data.name ? data.filaments.length ? 3 : 2 : 1);
@@ -243,10 +261,12 @@
         $("onboarding").classList.add("hidden");
         $("settingsView").classList.add("hidden");
         $("quoteView").classList.remove("hidden");
+        $("savedQuotesView").classList.remove("hidden");
         $("settingsButton").classList.remove("hidden");
         $("heading").textContent="Hola, "+data.name+".";
         $("subheading").textContent="Selecciona tu filamento, ingresa el consumo y prepara una cotización para compartir.";
         renderOptions();
+        renderSavedQuotes();
         if(result) renderResult();
       }
       function renderOptions(preferred) {
@@ -273,6 +293,7 @@
       }
       function showSettings() {
         $("quoteView").classList.add("hidden");
+        $("savedQuotesView").classList.add("hidden");
         $("settingsView").classList.remove("hidden");
         $("settingsButton").classList.add("hidden");
         $("heading").textContent="Tu taller, tus ajustes.";
@@ -301,24 +322,66 @@
         $("filamentFormTitle").textContent="Agregar filamento";$("saveFilamentButton").textContent="Agregar filamento";
         $("cancelFilamentEdit").classList.add("hidden");$("editFilamentError").textContent="";
       }
+      function renderSavedQuotes() {
+        const list=$("savedQuotesList");list.replaceChildren();
+        if(!data.quotes.length) {
+          const empty=document.createElement("p");empty.className="empty";
+          empty.textContent="Aún no hay cotizaciones guardadas.";list.append(empty);return;
+        }
+        data.quotes.forEach(q=>{
+          const item=document.createElement("div");item.className="saved-item";
+          const info=document.createElement("div"),title=document.createElement("strong"),meta=document.createElement("span");
+          title.textContent=q.title;
+          meta.textContent=q.result.filament.name+" · "+money(q.result.rounded)+" · "+new Date(q.updatedAt).toLocaleDateString("es-CL");
+          info.append(title,meta);
+          const actions=document.createElement("div");actions.className="item-actions";
+          const open=document.createElement("button");open.type="button";open.textContent="Abrir";open.dataset.action="open";open.dataset.id=q.id;
+          const remove=document.createElement("button");remove.type="button";remove.textContent="Eliminar";remove.dataset.action="remove";remove.dataset.id=q.id;
+          actions.append(open,remove);item.append(info,actions);list.append(item);
+        });
+      }
+      function newQuote() {
+        currentQuoteId=null;$("quoteForm").reset();renderOptions();invalidateResult();
+        $("quoteError").textContent="";$("quoteTitle").focus();window.scrollTo({top:0,behavior:"smooth"});
+      }
+      function openQuote(q) {
+        currentQuoteId=q.id;result={...q.result,filament:{...q.result.filament}};
+        $("quoteTitle").value=q.title;
+        renderOptions(result.filament.id);
+        if(!data.filaments.some(f=>f.id===result.filament.id)) {
+          const missing=document.createElement("option");missing.value=result.filament.id;
+          missing.textContent=result.filament.name+" (filamento eliminado)";
+          $("quoteFilament").append(missing);$("quoteFilament").value=missing.value;
+          toast("El filamento original fue eliminado. Selecciona otro para recalcular.");
+        }
+        $("quoteGrams").value=result.grams;$("quoteHours").value=result.hours;$("quoteMinutes").value=result.minutes;
+        $("quoteError").textContent="";renderResult();window.scrollTo({top:0,behavior:"smooth"});
+      }
       function quote() {
+        const title=$("quoteTitle").value.trim();
         const grams=value("quoteGrams"), hours=value("quoteHours"), minutes=value("quoteMinutes");
         const f=data.filaments.find(x=>x.id===$("quoteFilament").value), t=data.tariffs;
-        const valid=f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
+        const valid=title && f && $("quoteGrams").value!=="" && $("quoteHours").value!=="" && $("quoteMinutes").value!=="" &&
           validMoney(grams) && Number.isInteger(hours) && hours>=0 && Number.isInteger(minutes) && minutes>=0 && minutes<60 && hours*60+minutes>0;
-        $("quoteError").textContent=valid ? "" : "Ingresa gramos, horas y minutos válidos (0 a 59). El tiempo debe ser mayor que cero.";
+        $("quoteError").textContent=valid ? "" : "Ingresa un nombre, filamento, gramos y tiempo válidos (minutos de 0 a 59; tiempo mayor que cero).";
         if(!valid) { invalidateResult(); return; }
         const duration=hours+minutes/60, material=grams*f.price/f.weight, time=duration*t.hourly;
         const real=material+time;
         const rounded=Math.ceil((real-1e-9)/t.round)*t.round;
         const electricity=duration*t.watts/1000*t.kwh, wear=duration*t.wear;
-        result={filament:{...f},grams,hours,minutes,duration,material,time,real,rounded,electricity,wear,balance:rounded-material-electricity-wear,tariffs:{...t},name:data.name};
+        result={title,filament:{...f},grams,hours,minutes,duration,material,time,real,rounded,electricity,wear,balance:rounded-material-electricity-wear,tariffs:{...t},name:data.name};
+        const now=new Date().toISOString(), previous=data.quotes.find(q=>q.id===currentQuoteId);
+        const record={id:previous?.id||freshId(),title,createdAt:previous?.createdAt||now,updatedAt:now,result};
+        const oldQuotes=data.quotes;
+        data.quotes=[record,...oldQuotes.filter(q=>q.id!==record.id)];
+        if(save()) {currentQuoteId=record.id;renderSavedQuotes();toast("Cotización guardada en este navegador");}
+        else data.quotes=oldQuotes;
         renderResult();
       }
       function renderResult() {
         const r=result;if(!r)return;
         $("suggestedPrice").textContent=money(r.rounded);
-        $("resultDescription").textContent=r.filament.name+" · "+exact(r.grams)+" g · "+r.hours+" h "+r.minutes+" min";
+        $("resultDescription").textContent=r.title+" · "+r.filament.name+" · "+exact(r.grams)+" g · "+r.hours+" h "+r.minutes+" min";
         $("materialCost").textContent=money(r.material);
         $("timeCost").textContent=money(r.time);
         $("realPrice").textContent="$"+exact(r.real);
@@ -337,41 +400,36 @@
       function quoteText() {
         const r=result;
         return `COTIZACIÓN DE IMPRESIÓN 3D
+${r.title}
 Preparada por: ${r.name}
 Filamento: ${r.filament.name}
 Consumo: ${exact(r.grams)} g
 Tiempo: ${r.hours} h ${r.minutes} min
 
-Material: ${money(r.material)}
-Impresión: ${money(r.time)}
-Precio real: $${exact(r.real)}
-Precio final redondeado: ${money(r.rounded)}`;
+Precio final: ${money(r.rounded)}`;
       }
       function cardImage() {
         const r=result, canvas=document.createElement("canvas"), ctx=canvas.getContext("2d");
-        canvas.width=1080;canvas.height=1250;
-        ctx.fillStyle="#f5f6f4";ctx.fillRect(0,0,1080,1250);
-        ctx.fillStyle="#162537";ctx.fillRect(0,0,1080,275);
+        canvas.width=1080;canvas.height=1070;
+        ctx.fillStyle="#f5f6f4";ctx.fillRect(0,0,1080,1070);
+        ctx.fillStyle="#162537";ctx.fillRect(0,0,1080,255);
         ctx.fillStyle="#ff985f";ctx.font="bold 38px system-ui";ctx.fillText("3D   Cotiza3D",80,105);
         ctx.fillStyle="#ffffff";ctx.font="bold 67px system-ui";ctx.fillText("Cotización de impresión",80,200);
-        ctx.fillStyle="#ffffff";ctx.fillRect(48,245,984,945);
-        ctx.fillStyle="#738896";ctx.font="bold 25px system-ui";ctx.fillText("PRECIO FINAL REDONDEADO",100,340);
-        ctx.fillStyle="#162537";ctx.font="bold 108px system-ui";ctx.fillText(money(r.rounded),95,460);
-        ctx.fillStyle="#718391";ctx.font="30px system-ui";ctx.fillText("Precio real: $"+exact(r.real),100,520);
-        ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,570);ctx.lineTo(980,570);ctx.stroke();
+        ctx.fillStyle="#ffffff";ctx.fillRect(48,225,984,795);
+        ctx.fillStyle="#657b89";ctx.font="bold 32px system-ui";ctx.fillText(r.title,100,318,875);
+        ctx.fillStyle="#738896";ctx.font="bold 25px system-ui";ctx.fillText("PRECIO FINAL",100,395);
+        ctx.fillStyle="#162537";ctx.font="bold 108px system-ui";ctx.fillText(money(r.rounded),95,515);
+        ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,575);ctx.lineTo(980,575);ctx.stroke();
         function line(label,value,y) {
           ctx.fillStyle="#657b89";ctx.font="30px system-ui";ctx.fillText(label,100,y);
           ctx.fillStyle="#1c3346";ctx.font="bold 33px system-ui";ctx.textAlign="right";ctx.fillText(value,970,y);ctx.textAlign="left";
         }
         const filamentName=r.filament.name.length>27?r.filament.name.slice(0,26)+"…":r.filament.name;
-        line("Filamento",filamentName,650);
-        line("Consumo",exact(r.grams)+" g",725);
-        line("Tiempo",r.hours+" h "+r.minutes+" min",800);
-        ctx.strokeStyle="#e1e9e8";ctx.beginPath();ctx.moveTo(100,845);ctx.lineTo(980,845);ctx.stroke();
-        line("Material",money(r.material),920);
-        line("Impresión",money(r.time),995);
-        ctx.fillStyle="#f6f8f7";ctx.fillRect(100,1050,880,90);
-        ctx.fillStyle="#587084";ctx.font="28px system-ui";ctx.fillText("Preparada por "+r.name.slice(0,35),125,1107);
+        line("Filamento",filamentName,665);
+        line("Consumo",exact(r.grams)+" g",740);
+        line("Tiempo",r.hours+" h "+r.minutes+" min",815);
+        ctx.fillStyle="#f6f8f7";ctx.fillRect(100,875,880,90);
+        ctx.fillStyle="#587084";ctx.font="28px system-ui";ctx.fillText("Preparada por "+r.name.slice(0,35),125,932);
         return canvas;
       }
       function pngBlob() {
@@ -432,6 +490,18 @@ Precio final redondeado: ${money(r.rounded)}`;
       $("quoteForm").addEventListener("submit",e=>{e.preventDefault();quote();});
       $("quoteForm").addEventListener("input",()=>{if(result)invalidateResult();$("quoteError").textContent="";});
       $("quoteFilament").addEventListener("change",()=>{if(result)invalidateResult();});
+      $("newQuoteButton").addEventListener("click",newQuote);
+      $("savedQuotesList").addEventListener("click",e=>{
+        const b=e.target.closest("button[data-action]");if(!b)return;
+        const q=data.quotes.find(x=>x.id===b.dataset.id);if(!q)return;
+        if(b.dataset.action==="open") {openQuote(q);return;}
+        if(!confirm("¿Eliminar la cotización «"+q.title+"»?"))return;
+        const oldQuotes=data.quotes;
+        data.quotes=oldQuotes.filter(x=>x.id!==q.id);
+        if(!save()) {data.quotes=oldQuotes;return;}
+        if(currentQuoteId===q.id)newQuote();
+        renderSavedQuotes();toast("Cotización eliminada");
+      });
       $("settingsButton").addEventListener("click",showSettings);
       $("closeSettings").addEventListener("click",showQuote);
       $("addFilamentButton").addEventListener("click",()=>{showSettings();$("editFilamentName").focus();});
